@@ -986,6 +986,8 @@ void loop() {
 
 ### final GAME code 06
 
+https://github.com/user-attachments/assets/80d1986c-a755-4a24-8fe5-f48015c9af53
+
 ```cpp
 #include <Wire.h>
 #include <Adafruit_GFX.h>
