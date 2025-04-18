@@ -19,47 +19,73 @@ int obstacleType = 0;
 int score = 0;
 bool gameStarted = false;
 int gameSpeed = 50;
-bool showMotivation = false;
-String motivationMessage = "";
 
 void drawPlayer(int x, int y, bool jumping) {
-  display.fillCircle(x + 2, y - 6, 2, SSD1306_WHITE); // Head
-  display.drawLine(x + 2, y - 4, x + 2, y, SSD1306_WHITE); // Body
+  display.fillCircle(x + 2, y - 6, 2, SSD1306_WHITE);              // Head
+  display.drawLine(x + 2, y - 4, x + 2, y, SSD1306_WHITE);         // Body
 
   if (jumping) {
-    display.drawLine(x + 2, y, x, y + 3, SSD1306_WHITE);
+    display.drawLine(x + 2, y, x, y + 3, SSD1306_WHITE);           // Legs
     display.drawLine(x + 2, y, x + 4, y + 3, SSD1306_WHITE);
   } else {
-    display.drawLine(x + 2, y, x + 2, y + 4, SSD1306_WHITE);
+    display.drawLine(x + 2, y, x + 2, y + 4, SSD1306_WHITE);       // Standing leg
   }
 
-  display.drawLine(x + 2, y - 3, x, y - 2, SSD1306_WHITE); // Arms
+  display.drawLine(x + 2, y - 3, x, y - 2, SSD1306_WHITE);         // Arms
   display.drawLine(x + 2, y - 3, x + 4, y - 2, SSD1306_WHITE);
 }
 
 void drawObstacle(int x, int type) {
   if (type == 0) {
-    // Box
-    display.fillRect(x, groundLevel - 8, 6, 8, SSD1306_WHITE);
+    display.fillRect(x, groundLevel - 8, 6, 8, SSD1306_WHITE);           // Box
   } else if (type == 1) {
-    // Tree (trunk + leaves)
-    display.fillRect(x + 2, groundLevel - 6, 2, 6, SSD1306_WHITE); // Trunk
-    display.fillCircle(x + 3, groundLevel - 8, 3, SSD1306_WHITE);  // Leaves
+    display.fillRect(x + 2, groundLevel - 6, 2, 6, SSD1306_WHITE);       // Tree trunk
+    display.fillCircle(x + 3, groundLevel - 8, 3, SSD1306_WHITE);        // Leaves
   } else if (type == 2) {
-    // Bird (simple V shape)
-    display.drawPixel(x, groundLevel - 16, SSD1306_WHITE);
+    display.drawPixel(x, groundLevel - 16, SSD1306_WHITE);              // Bird (V shape)
     display.drawPixel(x + 1, groundLevel - 17, SSD1306_WHITE);
     display.drawPixel(x + 2, groundLevel - 16, SSD1306_WHITE);
   }
 }
 
+void showWelcomeScreen() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setCursor(0, 10);
+  String title = "WELCOME TO";
+  for (int i = 0; i < title.length(); i++) {
+    display.print(title[i]);
+    display.display();
+    delay(80);
+  }
+
+  display.setCursor(0, 32);
+  String title2 = "THE GAME";
+  for (int i = 0; i < title2.length(); i++) {
+    display.print(title2[i]);
+    display.display();
+    delay(80);
+  }
+
+  display.setTextSize(1);
+  display.setCursor(0, 52);
+  String sub = "Made by ARKADIP MAHAPATRA";
+  for (int i = 0; i < sub.length(); i++) {
+    display.print(sub[i]);
+    display.display();
+    delay(60);
+  }
+
+  delay(1500);
+  display.clearDisplay();
+  display.display();
+}
+
 void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  display.clearDisplay();
-  display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
-  display.display();
+  showWelcomeScreen();
 }
 
 void loop() {
@@ -71,6 +97,7 @@ void loop() {
   if (!gameStarted) {
     display.clearDisplay();
     display.setCursor(0, 30);
+    display.setTextSize(1);
     display.print("Press button to start");
     display.display();
     return;
@@ -93,38 +120,39 @@ void loop() {
     jumpCounter++;
   }
 
-  obstacleX -= 3;
-  if (obstacleX < -10) {
+  obstacleX -= 2;
+  if (obstacleX < -6) {
     obstacleX = SCREEN_WIDTH;
     obstacleType = random(0, 3);
     score++;
 
-    if (score % 10 == 0) {
-      showMotivation = true;
-      motivationMessage = (random(0, 2) == 0) ? "Great job!" : "Quick reflex!";
-    } else {
-      showMotivation = false;
+    if (score % 10 == 0 && score != 0) {
+      display.clearDisplay();
+      display.setCursor(0, 20);
+      if (score % 20 == 0) {
+        display.print("GREAT JOB!");
+      } else {
+        display.print("QUICK RESPONSE!");
+      }
+      display.display();
+      delay(1000);
     }
 
     if (gameSpeed > 20) gameSpeed -= 2;
   }
 
   display.clearDisplay();
-
   display.setCursor(0, 0);
+  display.setTextSize(1);
   display.print("Score: ");
   display.print(score);
-
-  if (showMotivation) {
-    display.setCursor(30, 10);
-    display.print(motivationMessage);
-  }
 
   display.drawLine(0, groundLevel + 4, SCREEN_WIDTH, groundLevel + 4, SSD1306_WHITE);
 
   drawPlayer(playerX, playerY, isJumping);
   drawObstacle(obstacleX, obstacleType);
 
+  // Collision detection
   if (obstacleX <= playerX + 4 && obstacleX + 6 >= playerX) {
     if (playerY + 6 >= groundLevel - 4) {
       display.setCursor(30, 20);
@@ -133,8 +161,8 @@ void loop() {
       delay(2000);
       score = 0;
       obstacleX = SCREEN_WIDTH;
-      gameSpeed = 50;
       gameStarted = false;
+      gameSpeed = 50;
       return;
     }
   }
