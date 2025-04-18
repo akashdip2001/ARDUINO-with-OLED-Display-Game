@@ -155,6 +155,10 @@ lib_deps =
 
 ### create a Game 🎯
 
+
+<details>
+  <summary style="opacity: 0.85;"><b>old game code 0.1</b></summary><br>
+
 https://github.com/user-attachments/assets/c07c5469-c741-4694-b076-7ea87a0b5272
 
 ```cpp
@@ -261,5 +265,727 @@ void loop() {
   delay(50);
 }
 ```
+
+</details>
+
+<details>
+  <summary style="opacity: 0.85;"><b>old code 0.2</b></summary><br>
+
+https://github.com/user-attachments/assets/9f0eb908-9c17-4df7-9ebb-b0a0df6821a1
+  
+```cpp
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+#define BUTTON_PIN 2
+
+int playerX = 5;
+int playerY = 50;
+bool isJumping = false;
+int jumpCounter = 0;
+int groundLevel = 56;
+int obstacleX = SCREEN_WIDTH;
+int score = 0;
+bool gameStarted = false;
+
+void drawPlayer(int x, int y, bool jumping) {
+  // Head
+  display.fillCircle(x + 2, y - 6, 2, SSD1306_WHITE);
+  // Body
+  display.drawLine(x + 2, y - 4, x + 2, y, SSD1306_WHITE);
+
+  if (jumping) {
+    // Jumping legs (spread)
+    display.drawLine(x + 2, y, x, y + 3, SSD1306_WHITE);
+    display.drawLine(x + 2, y, x + 4, y + 3, SSD1306_WHITE);
+  } else {
+    // Standing legs
+    display.drawLine(x + 2, y, x + 2, y + 4, SSD1306_WHITE);
+  }
+
+  // Arms
+  display.drawLine(x + 2, y - 3, x, y - 2, SSD1306_WHITE);
+  display.drawLine(x + 2, y - 3, x + 4, y - 2, SSD1306_WHITE);
+}
+
+void drawObstacle(int x) {
+  display.fillRect(x, groundLevel - 8, 6, 8, SSD1306_WHITE);
+}
+
+void setup() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.display();
+}
+
+void loop() {
+  if (!gameStarted && digitalRead(BUTTON_PIN) == LOW) {
+    gameStarted = true;
+    delay(200);
+  }
+
+  if (!gameStarted) {
+    display.clearDisplay();
+    display.setCursor(0, 30);
+    display.print("Press button to start");
+    display.display();
+    return;
+  }
+
+  if (digitalRead(BUTTON_PIN) == LOW && !isJumping) {
+    isJumping = true;
+    jumpCounter = 0;
+  }
+
+  if (isJumping) {
+    if (jumpCounter < 10) {
+      playerY -= 2;
+    } else if (jumpCounter < 20) {
+      playerY += 2;
+    } else {
+      isJumping = false;
+      playerY = groundLevel - 6;
+    }
+    jumpCounter++;
+  }
+
+  obstacleX -= 2;
+  if (obstacleX < -6) {
+    obstacleX = SCREEN_WIDTH;
+    score++;
+  }
+
+  display.clearDisplay();
+
+  // Score
+  display.setCursor(0, 0);
+  display.print("Score: ");
+  display.print(score);
+
+  // Ground
+  display.drawLine(0, groundLevel + 4, SCREEN_WIDTH, groundLevel + 4, SSD1306_WHITE);
+
+  // Draw player and obstacle
+  drawPlayer(playerX, playerY, isJumping);
+  drawObstacle(obstacleX);
+
+  // Collision
+  if (obstacleX <= playerX + 4 && obstacleX + 6 >= playerX) {
+    if (playerY + 6 >= groundLevel - 4) {
+      display.setCursor(30, 20);
+      display.print("Game Over!");
+      display.display();
+      delay(2000);
+      score = 0;
+      obstacleX = SCREEN_WIDTH;
+      gameStarted = false;
+      return;
+    }
+  }
+
+  display.display();
+  delay(50);
+}
+```
+</details>
+<details>
+  <summary style="opacity: 0.85;"><b>old code 0.3</b></summary><br>
+
+###  features added:
+
+- Random obstacle types: box 📦, tree 🌲🌳, bird 🐦
+- Gradually increasing speed
+- Motivational messages every 10 points
+
+```cpp
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+#define BUTTON_PIN 2
+
+int playerX = 5;
+int playerY = 50;
+bool isJumping = false;
+int jumpCounter = 0;
+int groundLevel = 56;
+int obstacleX = SCREEN_WIDTH;
+int obstacleType = 0;
+int score = 0;
+bool gameStarted = false;
+int gameSpeed = 50;
+bool showMotivation = false;
+String motivationMessage = "";
+
+void drawPlayer(int x, int y, bool jumping) {
+  display.fillCircle(x + 2, y - 6, 2, SSD1306_WHITE); // Head
+  display.drawLine(x + 2, y - 4, x + 2, y, SSD1306_WHITE); // Body
+
+  if (jumping) {
+    display.drawLine(x + 2, y, x, y + 3, SSD1306_WHITE);
+    display.drawLine(x + 2, y, x + 4, y + 3, SSD1306_WHITE);
+  } else {
+    display.drawLine(x + 2, y, x + 2, y + 4, SSD1306_WHITE);
+  }
+
+  display.drawLine(x + 2, y - 3, x, y - 2, SSD1306_WHITE); // Arms
+  display.drawLine(x + 2, y - 3, x + 4, y - 2, SSD1306_WHITE);
+}
+
+void drawObstacle(int x, int type) {
+  if (type == 0) {
+    // Box
+    display.fillRect(x, groundLevel - 8, 6, 8, SSD1306_WHITE);
+  } else if (type == 1) {
+    // Tree (trunk + leaves)
+    display.fillRect(x + 2, groundLevel - 6, 2, 6, SSD1306_WHITE); // Trunk
+    display.fillCircle(x + 3, groundLevel - 8, 3, SSD1306_WHITE);  // Leaves
+  } else if (type == 2) {
+    // Bird (simple V shape)
+    display.drawPixel(x, groundLevel - 16, SSD1306_WHITE);
+    display.drawPixel(x + 1, groundLevel - 17, SSD1306_WHITE);
+    display.drawPixel(x + 2, groundLevel - 16, SSD1306_WHITE);
+  }
+}
+
+void setup() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.display();
+}
+
+void loop() {
+  if (!gameStarted && digitalRead(BUTTON_PIN) == LOW) {
+    gameStarted = true;
+    delay(200);
+  }
+
+  if (!gameStarted) {
+    display.clearDisplay();
+    display.setCursor(0, 30);
+    display.print("Press button to start");
+    display.display();
+    return;
+  }
+
+  if (digitalRead(BUTTON_PIN) == LOW && !isJumping) {
+    isJumping = true;
+    jumpCounter = 0;
+  }
+
+  if (isJumping) {
+    if (jumpCounter < 10) {
+      playerY -= 2;
+    } else if (jumpCounter < 20) {
+      playerY += 2;
+    } else {
+      isJumping = false;
+      playerY = groundLevel - 6;
+    }
+    jumpCounter++;
+  }
+
+  obstacleX -= 3;
+  if (obstacleX < -10) {
+    obstacleX = SCREEN_WIDTH;
+    obstacleType = random(0, 3);
+    score++;
+
+    if (score % 10 == 0) {
+      showMotivation = true;
+      motivationMessage = (random(0, 2) == 0) ? "Great job!" : "Quick reflex!";
+    } else {
+      showMotivation = false;
+    }
+
+    if (gameSpeed > 20) gameSpeed -= 2;
+  }
+
+  display.clearDisplay();
+
+  display.setCursor(0, 0);
+  display.print("Score: ");
+  display.print(score);
+
+  if (showMotivation) {
+    display.setCursor(30, 10);
+    display.print(motivationMessage);
+  }
+
+  display.drawLine(0, groundLevel + 4, SCREEN_WIDTH, groundLevel + 4, SSD1306_WHITE);
+
+  drawPlayer(playerX, playerY, isJumping);
+  drawObstacle(obstacleX, obstacleType);
+
+  if (obstacleX <= playerX + 4 && obstacleX + 6 >= playerX) {
+    if (playerY + 6 >= groundLevel - 4) {
+      display.setCursor(30, 20);
+      display.print("Game Over!");
+      display.display();
+      delay(2000);
+      score = 0;
+      obstacleX = SCREEN_WIDTH;
+      gameSpeed = 50;
+      gameStarted = false;
+      return;
+    }
+  }
+
+  display.display();
+  delay(gameSpeed);
+}
+```
+
+</details>
+<details>
+  <summary style="opacity: 0.85;"><b>old code 0.4</b></summary><br>
+
+###  features added:
+
+- Add music or sound (with buzzer)
+- Store high score in EEPROM
+- Show WELLCOME SCREEN before the game starts
+
+```cpp
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+#define BUTTON_PIN 2
+
+int playerX = 5;
+int playerY = 50;
+bool isJumping = false;
+int jumpCounter = 0;
+int groundLevel = 56;
+int obstacleX = SCREEN_WIDTH;
+int obstacleType = 0;
+int score = 0;
+bool gameStarted = false;
+int gameSpeed = 50;
+
+void drawPlayer(int x, int y, bool jumping) {
+  display.fillCircle(x + 2, y - 6, 2, SSD1306_WHITE);              // Head
+  display.drawLine(x + 2, y - 4, x + 2, y, SSD1306_WHITE);         // Body
+
+  if (jumping) {
+    display.drawLine(x + 2, y, x, y + 3, SSD1306_WHITE);           // Legs
+    display.drawLine(x + 2, y, x + 4, y + 3, SSD1306_WHITE);
+  } else {
+    display.drawLine(x + 2, y, x + 2, y + 4, SSD1306_WHITE);       // Standing leg
+  }
+
+  display.drawLine(x + 2, y - 3, x, y - 2, SSD1306_WHITE);         // Arms
+  display.drawLine(x + 2, y - 3, x + 4, y - 2, SSD1306_WHITE);
+}
+
+void drawObstacle(int x, int type) {
+  if (type == 0) {
+    display.fillRect(x, groundLevel - 8, 6, 8, SSD1306_WHITE);           // Box
+  } else if (type == 1) {
+    display.fillRect(x + 2, groundLevel - 6, 2, 6, SSD1306_WHITE);       // Tree trunk
+    display.fillCircle(x + 3, groundLevel - 8, 3, SSD1306_WHITE);        // Leaves
+  } else if (type == 2) {
+    display.drawPixel(x, groundLevel - 16, SSD1306_WHITE);              // Bird (V shape)
+    display.drawPixel(x + 1, groundLevel - 17, SSD1306_WHITE);
+    display.drawPixel(x + 2, groundLevel - 16, SSD1306_WHITE);
+  }
+}
+
+void showWelcomeScreen() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setCursor(0, 10);
+  String title = "WELCOME TO";
+  for (int i = 0; i < title.length(); i++) {
+    display.print(title[i]);
+    display.display();
+    delay(80);
+  }
+
+  display.setCursor(0, 32);
+  String title2 = "THE GAME";
+  for (int i = 0; i < title2.length(); i++) {
+    display.print(title2[i]);
+    display.display();
+    delay(80);
+  }
+
+  display.setTextSize(1);
+  display.setCursor(0, 52);
+  String sub = "Made by ARKADIP MAHAPATRA";
+  for (int i = 0; i < sub.length(); i++) {
+    display.print(sub[i]);
+    display.display();
+    delay(60);
+  }
+
+  delay(1500);
+  display.clearDisplay();
+  display.display();
+}
+
+void setup() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.setTextColor(SSD1306_WHITE);
+  showWelcomeScreen();
+}
+
+void loop() {
+  if (!gameStarted && digitalRead(BUTTON_PIN) == LOW) {
+    gameStarted = true;
+    delay(200);
+  }
+
+  if (!gameStarted) {
+    display.clearDisplay();
+    display.setCursor(0, 30);
+    display.setTextSize(1);
+    display.print("Press button to start");
+    display.display();
+    return;
+  }
+
+  if (digitalRead(BUTTON_PIN) == LOW && !isJumping) {
+    isJumping = true;
+    jumpCounter = 0;
+  }
+
+  if (isJumping) {
+    if (jumpCounter < 10) {
+      playerY -= 2;
+    } else if (jumpCounter < 20) {
+      playerY += 2;
+    } else {
+      isJumping = false;
+      playerY = groundLevel - 6;
+    }
+    jumpCounter++;
+  }
+
+  obstacleX -= 2;
+  if (obstacleX < -6) {
+    obstacleX = SCREEN_WIDTH;
+    obstacleType = random(0, 3);
+    score++;
+
+    if (score % 10 == 0 && score != 0) {
+      display.clearDisplay();
+      display.setCursor(0, 20);
+      if (score % 20 == 0) {
+        display.print("GREAT JOB!");
+      } else {
+        display.print("QUICK RESPONSE!");
+      }
+      display.display();
+      delay(1000);
+    }
+
+    if (gameSpeed > 20) gameSpeed -= 2;
+  }
+
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.setTextSize(1);
+  display.print("Score: ");
+  display.print(score);
+
+  display.drawLine(0, groundLevel + 4, SCREEN_WIDTH, groundLevel + 4, SSD1306_WHITE);
+
+  drawPlayer(playerX, playerY, isJumping);
+  drawObstacle(obstacleX, obstacleType);
+
+  // Collision detection
+  if (obstacleX <= playerX + 4 && obstacleX + 6 >= playerX) {
+    if (playerY + 6 >= groundLevel - 4) {
+      display.setCursor(30, 20);
+      display.print("Game Over!");
+      display.display();
+      delay(2000);
+      score = 0;
+      obstacleX = SCREEN_WIDTH;
+      gameStarted = false;
+      gameSpeed = 50;
+      return;
+    }
+  }
+
+  display.display();
+  delay(gameSpeed);
+}
+```
+</details>
+<details>
+  <summary style="opacity: 0.85;"><b>old code 0.5 ✅</b></summary><br>
+
+###  features added:
+
+https://github.com/user-attachments/assets/ad962201-deb9-49cd-b17d-0b9988c45b53
+    
+```cpp
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+#define BUTTON_PIN 2
+
+int playerX = 5;
+int playerY = 50;
+bool isJumping = false;
+int jumpCounter = 0;
+int groundLevel = 56;
+
+int obstacleX = SCREEN_WIDTH;
+int obstacleType = 0;
+
+int score = 0;
+bool gameStarted = false;
+bool welcomeDone = false;
+bool hardMode = false;
+bool inCountdown = false;
+
+int gameSpeed = 50;
+
+// ========== PLAYER ============
+void drawPlayer(int x, int y, bool jumping) {
+  display.fillCircle(x + 2, y - 6, 2, SSD1306_WHITE); // Head
+  display.drawLine(x + 2, y - 4, x + 2, y, SSD1306_WHITE); // Body
+  display.drawLine(x + 2, y - 3, x, y - 2, SSD1306_WHITE); // Arms
+  display.drawLine(x + 2, y - 3, x + 4, y - 2, SSD1306_WHITE);
+  if (jumping) {
+    display.drawLine(x + 2, y, x, y + 3, SSD1306_WHITE); // Jumping legs
+    display.drawLine(x + 2, y, x + 4, y + 3, SSD1306_WHITE);
+  } else {
+    display.drawLine(x + 2, y, x + 1, y + 4, SSD1306_WHITE); // Standing legs
+    display.drawLine(x + 2, y, x + 3, y + 4, SSD1306_WHITE);
+  }
+}
+
+// ========== OBSTACLES ============
+void drawObstacle(int x, int type) {
+  switch (type) {
+    case 0: // box
+      display.fillRect(x, groundLevel - 8, 6, 8, SSD1306_WHITE);
+      break;
+    case 1: // tree
+      display.fillRect(x + 2, groundLevel - 10, 2, 10, SSD1306_WHITE); // trunk
+      display.fillTriangle(x - 2, groundLevel - 10, x + 3, groundLevel - 16, x + 8, groundLevel - 10, SSD1306_WHITE);
+      break;
+    case 2: // bird
+      display.drawPixel(x, groundLevel - 16, SSD1306_WHITE);
+      display.drawPixel(x + 1, groundLevel - 17, SSD1306_WHITE);
+      display.drawPixel(x + 2, groundLevel - 16, SSD1306_WHITE);
+      break;
+  }
+}
+
+// ========== SCREENS ============
+void showWelcomeScreen() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 15);
+  display.println("WELCOME TO");
+  display.setCursor(0, 35);
+  display.println("THE GAME");
+  display.display();
+  delay(2000);
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(25, 15);
+  display.println("made by:");
+  display.setCursor(0, 35);
+  display.println("AKASHDIP MAHAPATRA");
+  display.display();
+  delay(2000);
+  welcomeDone = true;
+}
+
+void showDifficultyScreen(bool selectedHard, int countdown) {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(5, 15);
+  display.print("Select Difficulty:");
+  display.setCursor(25, 35);
+  display.print(selectedHard ? "  Easy   >Hard<" : ">Easy<   Hard");
+
+  display.setCursor(20, 50);
+  display.print("Starting in: ");
+  display.print(countdown);
+  display.display();
+}
+
+// ========== SETUP ============
+void setup() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.display();
+}
+
+// ========== MAIN LOOP ============
+void loop() {
+  static bool waitingToStart = true;
+  static bool difficultySelected = false;
+  static unsigned long countdownStartTime = 0;
+  static int countdown = 3;
+  static unsigned long lastCountdownUpdate = 0;
+
+  // Show welcome screen once
+  if (!welcomeDone) {
+    showWelcomeScreen();
+    welcomeDone = true;
+    return;
+  }
+
+  // Start screen: wait for first press
+  if (!gameStarted && waitingToStart) {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(0, 30);
+    display.print("Press button to start");
+    display.display();
+
+    if (digitalRead(BUTTON_PIN) == LOW) {
+      delay(200); // debounce
+      waitingToStart = false;
+      countdownStartTime = millis();
+      lastCountdownUpdate = millis();
+      countdown = 3;
+      inCountdown = true;
+    }
+    return;
+  }
+
+  // Difficulty selection with countdown
+  if (!gameStarted && inCountdown) {
+    // Handle button press to toggle difficulty
+    if (digitalRead(BUTTON_PIN) == LOW) {
+      delay(200); // debounce
+      hardMode = !hardMode;
+      countdown = 3;
+      countdownStartTime = millis();
+      lastCountdownUpdate = millis();
+    }
+
+    // Update countdown every second
+    if (millis() - lastCountdownUpdate >= 1000) {
+      countdown--;
+      lastCountdownUpdate = millis();
+    }
+
+    showDifficultyScreen(hardMode, countdown);
+
+    if (countdown <= 0) {
+      inCountdown = false;
+      gameStarted = true;
+      gameSpeed = hardMode ? 30 : 50;
+    }
+    return;
+  }
+
+  // ================= GAME LOOP =================
+  if (digitalRead(BUTTON_PIN) == LOW && !isJumping) {
+    isJumping = true;
+    jumpCounter = 0;
+    delay(100);
+  }
+
+  if (isJumping) {
+    if (jumpCounter < 10) {
+      playerY -= 2;
+    } else if (jumpCounter < 20) {
+      playerY += 2;
+    } else {
+      isJumping = false;
+      playerY = groundLevel - 6;
+    }
+    jumpCounter++;
+  }
+
+  obstacleX -= 2;
+  if (obstacleX < -10) {
+    obstacleX = SCREEN_WIDTH;
+    obstacleType = random(0, 3);
+    score++;
+
+    if (score % 10 == 0) {
+      display.clearDisplay();
+      display.setCursor(0, 20);
+      display.setTextSize(1);
+      if (score % 20 == 0)
+        display.print("YOU REALLY HAVE QUICK REFLEXES!");
+      else
+        display.print("Great job!");
+      display.display();
+      delay(1500);
+    }
+
+    if (hardMode && gameSpeed > 25) gameSpeed--;
+  }
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.print("Score: ");
+  display.print(score);
+
+  display.drawLine(0, groundLevel + 4, SCREEN_WIDTH, groundLevel + 4, SSD1306_WHITE);
+  drawPlayer(playerX, playerY, isJumping);
+  drawObstacle(obstacleX, obstacleType);
+
+  // Collision detection
+  if (obstacleX <= playerX + 4 && obstacleX + 6 >= playerX) {
+    if (playerY + 6 >= groundLevel - 6) {
+      display.setCursor(30, 20);
+      display.print("Game Over!");
+      display.display();
+      delay(2000);
+
+      // Reset game state
+      score = 0;
+      obstacleX = SCREEN_WIDTH;
+      gameStarted = false;
+      waitingToStart = true;
+      hardMode = false;
+      inCountdown = false;
+      return;
+    }
+  }
+
+  display.display();
+  delay(gameSpeed);
+}
+```
+</details>
 
 ![Screenshot (329)](https://github.com/user-attachments/assets/c34d7ad1-2428-4b33-8127-fabe6551ddc6)
