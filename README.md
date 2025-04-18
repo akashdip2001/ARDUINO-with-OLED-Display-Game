@@ -81,13 +81,27 @@ rm -rf .git
 
 ---
 
+## only check the Display working or not ?
+
+### Wiring Connections:
+
+```go
+OLED VCC -> Arduino 5V
+
+OLED GND -> Arduino GND
+
+OLED SDA -> Arduino A4
+
+OLED SCL -> Arduino A5
+
+Jump Button -> Arduino D2 (other leg to GND), using INPUT_PULLUP
+```
+
+![ARDUINO-with-OLED-Display](https://github.com/user-attachments/assets/9df7aa80-0795-4f0e-8859-f09b91ff5278)
+
 https://github.com/user-attachments/assets/2608ca3f-f541-46a6-96dd-fb340bdfc8a1
 
 ---
-
-## only check the Display working or not ?
-
-![ARDUINO-with-OLED-Display](https://github.com/user-attachments/assets/9df7aa80-0795-4f0e-8859-f09b91ff5278)
 
 ```cpp
 #include <Arduino.h>
@@ -124,6 +138,7 @@ void loop() {
 }
 ```
 
+### .ini `(libraryes)`
 ```ini
 [env:uno]
 platform = atmelavr
