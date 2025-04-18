@@ -89,7 +89,7 @@ https://github.com/user-attachments/assets/2608ca3f-f541-46a6-96dd-fb340bdfc8a1
 
 ![ARDUINO-with-OLED-Display](https://github.com/user-attachments/assets/9df7aa80-0795-4f0e-8859-f09b91ff5278)
 
-```
+```cpp
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
