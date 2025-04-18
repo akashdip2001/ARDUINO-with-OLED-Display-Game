@@ -824,7 +824,7 @@ void showWelcomeScreen() {
   display.setCursor(25, 15);
   display.println("made by:");
   display.setCursor(0, 35);
-  display.println("AKASHDIP MAHAPATRA");
+  display.println("ARKADIP MAHAPATRA");
   display.display();
   delay(2000);
   welcomeDone = true;
@@ -989,3 +989,46 @@ void loop() {
 </details>
 
 ![Screenshot (329)](https://github.com/user-attachments/assets/c34d7ad1-2428-4b33-8127-fabe6551ddc6)
+
+To make **Hard** mode a bit more challenging, you can increase the initial speed (i.e., decrease the delay) and allow it to ramp up faster over time.
+
+---
+
+### 🔧 Here's what to tweak:
+
+#### 1. **Set a faster starting speed for Hard mode**
+In the line where `gameSpeed` is set after countdown ends:
+```cpp
+gameSpeed = hardMode ? 30 : 50;
+```
+
+➡️ Change `30` to something like `20`:
+```cpp
+gameSpeed = hardMode ? 20 : 50;
+```
+
+---
+
+#### 2. **Make Hard mode get faster more aggressively**
+Find this line inside your `obstacleX < -10` block:
+```cpp
+if (hardMode && gameSpeed > 25) gameSpeed--;
+```
+
+➡️ Make it more aggressive, like:
+```cpp
+if (hardMode && gameSpeed > 10) gameSpeed -= 2;
+```
+
+This will reduce delay by 2ms every 10 points, making it noticeably harder as score increases.
+
+---
+
+### Final Tweaked Lines:
+```cpp
+gameSpeed = hardMode ? 20 : 50;   // faster start for hard
+...
+if (hardMode && gameSpeed > 10) gameSpeed -= 2;  // faster acceleration
+```
+
+---
