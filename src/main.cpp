@@ -73,10 +73,10 @@ void showWelcomeScreen() {
 
   display.clearDisplay();
   display.setTextSize(1);
-  display.setCursor(25, 15);
+  display.setCursor(30, 15);
   display.println("made by:");
-  display.setCursor(0, 35);
-  display.println("ARKADIP MAHAPATRA");
+  display.setCursor(30, 35);
+  display.println("MAHAPATRA");
   display.display();
   delay(2000);
   welcomeDone = true;
