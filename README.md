@@ -138,7 +138,7 @@ void loop() {
 }
 ```
 
-### .ini (libraryes)
+### .ini `(libraryes)`
 ```ini
 [env:uno]
 platform = atmelavr
