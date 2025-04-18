@@ -52,10 +52,10 @@ void drawObstacle(int x, int type) {
       display.fillTriangle(x - 2, groundLevel - 10, x + 3, groundLevel - 16, x + 8, groundLevel - 10, SSD1306_WHITE);
       break;
     case 2: // bird
-      display.drawPixel(x, groundLevel - 16, SSD1306_WHITE);
-      display.drawPixel(x + 1, groundLevel - 17, SSD1306_WHITE);
-      display.drawPixel(x + 2, groundLevel - 16, SSD1306_WHITE);
-      break;
+      display.fillCircle(x + 2, groundLevel - 20, 2, SSD1306_WHITE); // body
+      display.drawPixel(x + 1, groundLevel - 22, SSD1306_WHITE); // wing top
+      display.drawPixel(x + 3, groundLevel - 22, SSD1306_WHITE);
+    break;
   }
 }
 
@@ -87,7 +87,7 @@ void showDifficultyScreen(bool selectedHard, int countdown) {
   display.setTextSize(1);
   display.setCursor(5, 15);
   display.print("Select Difficulty:");
-  display.setCursor(25, 35);
+  display.setCursor(22, 35);
   display.print(selectedHard ? "  Easy   >Hard<" : ">Easy<   Hard");
 
   display.setCursor(20, 50);
@@ -215,8 +215,27 @@ void loop() {
   drawPlayer(playerX, playerY, isJumping);
   drawObstacle(obstacleX, obstacleType);
 
-  // Collision detection
-  if (obstacleX <= playerX + 4 && obstacleX + 6 >= playerX) {
+// Collision detection
+if (obstacleX <= playerX + 4 && obstacleX + 6 >= playerX) {
+  if (obstacleType == 2) {
+    // Bird: check if player jumped into it
+    if (playerY <= groundLevel - 16) {
+      display.setCursor(30, 20);
+      display.print("Game Over!");
+      display.display();
+      delay(2000);
+
+      // Reset game state
+      score = 0;
+      obstacleX = SCREEN_WIDTH;
+      gameStarted = false;
+      waitingToStart = true;
+      hardMode = false;
+      inCountdown = false;
+      return;
+    }
+  } else {
+    // Ground obstacle collision
     if (playerY + 6 >= groundLevel - 6) {
       display.setCursor(30, 20);
       display.print("Game Over!");
@@ -233,6 +252,8 @@ void loop() {
       return;
     }
   }
+}
+
 
   display.display();
   delay(gameSpeed);
