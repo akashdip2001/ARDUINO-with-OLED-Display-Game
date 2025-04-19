@@ -27,6 +27,21 @@ bool inCountdown = false;
 
 int gameSpeed = 50;
 
+// ========== STARS AND CLOUDS ============
+#define MAX_STARS 10
+#define MAX_CLOUDS 2
+
+int starX[MAX_STARS];
+int starY[MAX_STARS];
+
+int cloudX[MAX_CLOUDS];
+int cloudY[MAX_CLOUDS];
+bool cloudVisible[MAX_CLOUDS];
+
+// ========== WATERMARK, at POINT 8 ============
+bool watermarkShown = false;
+int watermarkX = SCREEN_WIDTH;
+
 // ========== PLAYER ============
 void drawPlayer(int x, int y, bool jumping) {
   display.fillCircle(x + 2, y - 6, 2, SSD1306_WHITE); // Head
@@ -157,7 +172,60 @@ void setup() {
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   display.display();
+
+  for (int i = 0; i < MAX_STARS; i++) { 
+  starX[i] = random(SCREEN_WIDTH, SCREEN_WIDTH + 100);
+  starY[i] = random(0, groundLevel - 20);
+  }
+
+  for (int i = 0; i < MAX_CLOUDS; i++) {
+    cloudX[i] = SCREEN_WIDTH + random(50, 150);
+    cloudY[i] = random(5, groundLevel - 30);
+    cloudVisible[i] = false;
+  }
 }
+
+// ========== STARS ============
+void drawStars() {
+  for (int i = 0; i < MAX_STARS; i++) {
+    display.drawPixel(starX[i], starY[i], SSD1306_WHITE);
+    starX[i]--;
+
+    if (starX[i] < 0) {
+      starX[i] = SCREEN_WIDTH + random(20, 100);
+      starY[i] = random(0, groundLevel - 20);
+    }
+  }
+}
+
+// ========== CLOUDS ============
+void drawClouds() {
+  for (int i = 0; i < 3; i++) {
+    int x = cloudX[i];
+    int y = cloudY[i];
+
+    display.fillCircle(x + 8, y, 4, SSD1306_WHITE);
+    display.fillCircle(x + 4, y + 2, 4, SSD1306_WHITE);
+    display.fillCircle(x + 12, y + 2, 4, SSD1306_WHITE);
+  }
+}
+
+// ========== MOON ============
+void drawMoon() {
+  int x = SCREEN_WIDTH - 12;
+  int y = 10;
+  display.fillCircle(x, y, 6, SSD1306_WHITE); // Full moon
+  display.fillCircle(x - 2, y - 1, 5, SSD1306_BLACK); // Shadow for crescent effect
+}
+
+// ========== WATERMARK, at POINT 8 ============
+void drawWatermark() {
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(watermarkX, SCREEN_HEIGHT - 50); // Bottom of screen
+  display.print("   ARKADIP MAHAPATRA");
+}
+
 
 // ========== MAIN LOOP ============
 void loop() {
@@ -268,6 +336,27 @@ void loop() {
   display.print(score);
 
   display.drawLine(0, groundLevel + 4, SCREEN_WIDTH, groundLevel + 4, SSD1306_WHITE);
+
+  if (score >= 2) {
+  drawMoon(); // 🌙 Add this line
+  }
+
+// ✅ NEW: Sky elements
+if (score >= 5) {
+  drawStars();
+  drawClouds();
+}
+
+// Show watermark one time when score == 8
+if (score >= 8 && !watermarkShown) {
+  drawWatermark();
+  watermarkX -= 2;
+
+  if (watermarkX + 100 < 0) { // ~100px long text fully passed
+    watermarkShown = true;
+  }
+}
+
   drawPlayer(playerX, playerY, isJumping);
   drawObstacle(obstacleX, obstacleType);
 
