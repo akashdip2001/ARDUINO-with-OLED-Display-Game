@@ -41,6 +41,7 @@ bool cloudVisible[MAX_CLOUDS];
 // ========== WATERMARK, at POINT 8 ============
 bool watermarkShown = false;
 int watermarkX = SCREEN_WIDTH;
+bool watermarkStarted = false;
 
 // ========== PLAYER ============
 void drawPlayer(int x, int y, bool jumping) {
@@ -348,14 +349,23 @@ if (score >= 5) {
 }
 
 // Show watermark one time when score == 8
-if (score >= 8 && !watermarkShown) {
+// Start watermark once when score hits 8
+if (score >= 8 && !watermarkStarted && !watermarkShown) {
+  watermarkStarted = true;
+  watermarkX = SCREEN_WIDTH;
+}
+
+// Animate watermark if started and not done
+if (watermarkStarted && !watermarkShown) {
   drawWatermark();
   watermarkX -= 2;
 
-  if (watermarkX + 100 < 0) { // ~100px long text fully passed
+  if (watermarkX + 110 < 0) { // Adjust if text is longer or shorter
     watermarkShown = true;
+    watermarkStarted = false;
   }
 }
+
 
   drawPlayer(playerX, playerY, isJumping);
   drawObstacle(obstacleX, obstacleType);
