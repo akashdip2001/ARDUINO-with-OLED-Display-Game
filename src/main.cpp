@@ -72,11 +72,11 @@ void showWelcomeScreen() {
   delay(2000);
 
   display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(30, 15);
+  display.setTextSize(1.5);
+  display.setCursor(0, 15);
   display.println("made by:");
-  display.setCursor(30, 35);
-  display.println("MAHAPATRA");
+  display.setCursor(0, 35);
+  display.println("ARKADIP MAHAPATRA");
   display.display();
   delay(2000);
   welcomeDone = true;
@@ -160,7 +160,7 @@ void loop() {
     if (countdown <= 0) {
       inCountdown = false;
       gameStarted = true;
-      gameSpeed = hardMode ? 20 : 50; //gameSpeed = hardMode ? 30 : 50; // Adjust game speed "for hard mode"
+      gameSpeed = hardMode ? 10 : 50; //gameSpeed = hardMode ? 30 : 50; // Adjust game speed "for hard mode"
     }
     return;
   }
@@ -202,7 +202,7 @@ void loop() {
       delay(1500);
     }
 
-    if (hardMode && gameSpeed > 10) gameSpeed -= 2; //if (hardMode && gameSpeed > 25) gameSpeed--; // Adjust game speed for hard mode
+    if (hardMode && gameSpeed > 5) gameSpeed -= 5; //if (hardMode && gameSpeed > 25) gameSpeed--; // Adjust game speed for hard mode
   }
 
   display.clearDisplay();
