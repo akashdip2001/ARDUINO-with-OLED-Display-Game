@@ -17,6 +17,7 @@ int groundLevel = 56;
 
 int obstacleX = SCREEN_WIDTH;
 int obstacleType = 0;
+int birdVariant = 0;
 
 int score = 0;
 bool gameStarted = false;
@@ -44,18 +45,72 @@ void drawPlayer(int x, int y, bool jumping) {
 // ========== OBSTACLES ============
 void drawObstacle(int x, int type) {
   switch (type) {
-    case 0: // box
-      display.fillRect(x, groundLevel - 8, 6, 8, SSD1306_WHITE);
+    case 0: // Car
+      display.fillRect(x, groundLevel - 8, 16, 8, SSD1306_WHITE); // Body
+      display.drawLine(x + 3, groundLevel - 8, x + 6, groundLevel - 12, SSD1306_WHITE); // Windshield
+      display.drawLine(x + 6, groundLevel - 12, x + 10, groundLevel - 12, SSD1306_WHITE); // Roof
+      display.drawLine(x + 10, groundLevel - 12, x + 13, groundLevel - 8, SSD1306_WHITE); // Back slope
+      display.fillCircle(x + 4, groundLevel, 2, SSD1306_WHITE); // Left wheel
+      display.fillCircle(x + 12, groundLevel, 2, SSD1306_WHITE); // Right wheel
       break;
-    case 1: // tree
-      display.fillRect(x + 2, groundLevel - 10, 2, 10, SSD1306_WHITE); // trunk
-      display.fillTriangle(x - 2, groundLevel - 10, x + 3, groundLevel - 16, x + 8, groundLevel - 10, SSD1306_WHITE);
+
+    case 1: // Pine Tree
+      display.fillRect(x + 3, groundLevel - 6, 2, 6, SSD1306_WHITE); 
+      display.fillTriangle(x - 4, groundLevel - 6, x + 4, groundLevel - 14, x + 12, groundLevel - 6, SSD1306_WHITE);
+      display.fillTriangle(x - 3, groundLevel - 10, x + 4, groundLevel - 18, x + 11, groundLevel - 10, SSD1306_WHITE);
       break;
-    case 2: // bird
-      display.fillCircle(x + 2, groundLevel - 20, 2, SSD1306_WHITE); // body
-      display.drawPixel(x + 1, groundLevel - 22, SSD1306_WHITE); // wing top
-      display.drawPixel(x + 3, groundLevel - 22, SSD1306_WHITE);
-    break;
+
+    case 2: // Bird Variants
+  switch (birdVariant) {
+    case 0: // Small Bird
+      display.fillCircle(x + 5, groundLevel - 20, 2, SSD1306_WHITE); // Body
+      display.drawPixel(x + 3, groundLevel - 20, SSD1306_WHITE);     // Head
+      display.drawPixel(x + 2, groundLevel - 20, SSD1306_WHITE);     // Beak
+      display.drawLine(x + 5, groundLevel - 20, x + 7, groundLevel - 22, SSD1306_WHITE); // Wing top
+      display.drawLine(x + 5, groundLevel - 20, x + 7, groundLevel - 18, SSD1306_WHITE); // Wing bottom
+      display.drawPixel(x + 7, groundLevel - 20, SSD1306_WHITE);     // Tail
+      break;
+
+
+    case 1: // Wide-Wing Bird (soaring)
+      display.drawLine(x + 3, groundLevel - 20, x + 7, groundLevel - 20, SSD1306_WHITE); // Wingspan
+      display.drawPixel(x + 5, groundLevel - 21, SSD1306_WHITE); // Head/body
+      display.drawPixel(x + 6, groundLevel - 21, SSD1306_WHITE); // Back
+      break;
+
+    case 2: // Perched-Looking Bird (longer body)
+      display.fillRect(x + 4, groundLevel - 21, 3, 3, SSD1306_WHITE); // Body
+      display.drawPixel(x + 3, groundLevel - 21, SSD1306_WHITE); // Head
+      display.drawPixel(x + 2, groundLevel - 21, SSD1306_WHITE); // Beak
+      display.drawPixel(x + 5, groundLevel - 24, SSD1306_WHITE); // Wing tip
+      display.drawPixel(x + 7, groundLevel - 20, SSD1306_WHITE); // Tail feather
+      break;
+  }
+  break;
+
+    case 3: // Walking dog
+      display.fillRect(x + 2, groundLevel - 8, 10, 5, SSD1306_WHITE);   // Body
+      display.drawRect(x - 1, groundLevel - 10, 4, 4, SSD1306_WHITE);   // Head
+      display.drawPixel(x, groundLevel - 11, SSD1306_WHITE);           // Ear
+      display.drawLine(x + 10, groundLevel - 7, x + 12, groundLevel - 6, SSD1306_WHITE); // Tail
+      display.drawLine(x + 3, groundLevel - 3, x + 3, groundLevel, SSD1306_WHITE); // Front leg
+      display.drawLine(x + 5, groundLevel - 3, x + 5, groundLevel, SSD1306_WHITE); // Mid leg
+      display.drawLine(x + 7, groundLevel - 3, x + 7, groundLevel, SSD1306_WHITE); // Mid leg
+      display.drawLine(x + 9, groundLevel - 3, x + 9, groundLevel, SSD1306_WHITE); // Back leg
+      break;
+
+      case 4: // Cactus with head
+      display.drawLine(x + 3, groundLevel - 14, x + 3, groundLevel, SSD1306_WHITE); // Main trunk
+      display.drawLine(x + 3, groundLevel - 10, x, groundLevel - 10, SSD1306_WHITE); // Left arm
+      display.drawLine(x, groundLevel - 10, x, groundLevel - 6, SSD1306_WHITE);     // Left arm vertical
+      display.drawLine(x + 3, groundLevel - 12, x + 6, groundLevel - 12, SSD1306_WHITE); // Right arm
+      display.drawLine(x + 6, groundLevel - 12, x + 6, groundLevel - 8, SSD1306_WHITE);  // Right arm vertical
+
+      // 🌵 Head (a circle-like cactus top)
+      display.drawPixel(x + 2, groundLevel - 15, SSD1306_WHITE);
+      display.drawPixel(x + 3, groundLevel - 16, SSD1306_WHITE);
+      display.drawPixel(x + 4, groundLevel - 15, SSD1306_WHITE);
+      break;
   }
 }
 
@@ -74,7 +129,7 @@ void showWelcomeScreen() {
   display.clearDisplay();
   display.setTextSize(1.5);
   display.setCursor(0, 15);
-  display.println("made by:");
+  display.println("made by: ");
   display.setCursor(0, 35);
   display.println("ARKADIP MAHAPATRA");
   display.display();
@@ -187,7 +242,8 @@ void loop() {
   obstacleX -= 2;
   if (obstacleX < -10) {
     obstacleX = SCREEN_WIDTH;
-    obstacleType = random(0, 3);
+    obstacleType = random(0, 5); // Randomly select obstacle type
+    int birdVariant = random(0, 3); // 0 = small, 1 = wide-wing, 2 = perched-looking
     score++;
 
     if (score % 10 == 0) {
