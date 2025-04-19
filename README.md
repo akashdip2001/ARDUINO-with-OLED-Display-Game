@@ -2085,3 +2085,7 @@ if (obstacleX <= playerX + 4 && obstacleX + 6 >= playerX) {
   delay(gameSpeed);
 }
 ```
+
+</br>
+
+<img href="https://github.com/Arkadip2007/LCD-with-ARDUINO-Endless-Runner-game" target="_blank" src="public/ARDUINO & Display Games.jpg">
