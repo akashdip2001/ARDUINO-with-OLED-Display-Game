@@ -11,26 +11,36 @@ I want to **push just this one project folder** to a **different GitHub account/
 
 ## ✅ Steps to Upload This Folder to That Repo (Temporarily)
 
-### 📂 1. Open terminal in the project folder
+### 🐦 1. Open terminal in the project folder
 
 ```bash
 cd path/to/ARDUINO-with-OLED-Display
 ```
 
-### 🌱 2. Initialize Git (if not already)
+### 🐦 2. Set Git user for just that project:
+Open the terminal in that project folder and run:
+
+```bash
+git config user.name "Their Name"
+git config user.email "their-email@example.com"
+```
+
+This overrides your global Git identity only for this repo. So your commits will look like they came from them (or from whoever should be listed as contributor).
+
+### 🐦 3. Initialize Git (if not already)
 
 ```bash
 git init
 ```
 
-### 📝 3. Add and commit all files
+### 🐦 4. Add and commit all files
 
 ```bash
 git add .
 git commit -m "Initial commit for OLED project"
 ```
 
-### 🔗 4. Add the remote with token (for one-time push)
+### 🐦 5. Add the remote with token (for one-time push)
 
 ![Screenshot (328)](https://github.com/user-attachments/assets/b66abca0-c6e4-4285-aa8b-4fc74923ccdc)
 
@@ -49,7 +59,7 @@ git remote add origin https://ghp_abcd123456789yourtoken@github.com/Arkadip2007/
 
 > This way it won’t ask for username/password and uses your token directly.
 
-### 🛠️ 5. Set the branch name (if needed)
+### 🐦 6. Set the branch name (if needed)
 
 ```bash
 git branch -M main
