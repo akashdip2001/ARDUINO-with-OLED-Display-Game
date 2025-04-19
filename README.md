@@ -5,7 +5,7 @@
 <details>
   <summary style="opacity: 0.85;"><b>⚙️📌 Upload in GitHub without Login</b></summary><br>
 
-I want to **push just this one project folder** to a **different GitHub account/repo (temporarily)** using my **personal access token**, without affecting your existing projects or GitHub account setup in VS Code.
+If you want to **push just this one project folder** to a **different GitHub account/repo (temporarily)** using my **personal access token**, without affecting your existing projects or GitHub account setup in VS Code.
 
 ---
 
